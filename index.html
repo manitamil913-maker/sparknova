@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPARKNOVA AI Trading</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d19;color:#fff;font-family:Arial,sans-serif;padding:20px}
+header{text-align:center;padding:20px;color:#b69cff}
+h1{font-size:32px;letter-spacing:3px}
+.sub{color:#8995aa}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px}
+.card{background:#121d30;border:1px solid #293b56;border-radius:14px;padding:18px;margin-bottom:14px}
+.value{font-size:25px;font-weight:bold;margin-top:12px}
+.green{color:#35d69a}.red{color:#ff667c}
+h2{font-size:17px;color:#c6b4ff}
+button{background:#7959dc;color:white;border:0;border-radius:8px;padding:12px;cursor:pointer;font-weight:bold}
+input,select{background:#091321;color:white;border:1px solid #40516c;padding:12px;border-radius:8px;width:100%;margin:7px 0}
+label{font-size:13px;color:#b5c0d3}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:11px 5px;border-bottom:1px solid #293b56;text-align:left}
+small{color:#8995aa}
+</style>
+</head>
+<body>
+<header>
+<h1>✦ SPARKNOVA</h1>
+<div class="sub">BULL • BEAR • JUDGE AI TRADING SYSTEM</div>
+<small>PAPER TRADING ONLY | NO REAL ORDERS</small>
+</header>
+
+<div class="grid">
+<div class="card"><small>VIRTUAL CAPITAL</small><div class="value" id="balance">₹1,000</div></div>
+<div class="card"><small>TODAY PROFIT</small><div class="value green" id="profit">₹0</div></div>
+<div class="card"><small>TODAY LOSS</small><div class="value red" id="loss">₹0</div></div>
+<div class="card"><small>NET P&L</small><div class="value" id="net">₹0</div></div>
+</div>
+
+<div class="grid">
+<div class="card"><h2>🐂 BULL AI</h2><p> Bullish analysis pending</p><small>Awaiting market data</small></div>
+<div class="card"><h2>🐻 BEAR AI</h2><p>Bearish analysis pending</p><small>Awaiting market data</small></div>
+<div class="card"><h2>⚖️ JUDGE AI</h2><p>WAIT</p><small>Evidence required</small></div>
+</div>
+
+<div class="card">
+<h2>📊 Paper Trade Entry</h2>
+<label>Stock name</label>
+<input id="stock" placeholder="Example: RELIANCE">
+<label>Trade direction</label>
+<select id="direction"><option>BUY</option><option>SELL</option></select>
+<label>Position value (₹)</label>
+<input id="amount" type="number" placeholder="Maximum available balance">
+<label>Realised simulated P&L (₹)</label>
+<input id="result" type="number" placeholder="Profit positive / Loss negative">
+<button onclick="addTrade()">Save Completed Paper Trade</button>
+<p id="message"></p>
+<small>Manual simulation only. This does not fetch live prices or place orders.</small>
+</div>
+
+<div class="card">
+<h2>📋 Daily Trade History</h2>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Stock</th><th>Side</th><th>Value</th><th>P&L</th></tr></thead>
+<tbody id="history"></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>🧠 AI Learning Report</h2>
+<p id="report">No completed trades yet. Waiting for trade data.</p>
+<small>Strategy upgrades require human approval.</small>
+</div>
+
+<script>
+let balance=1000;
+let trades=[];
+function money(n){return "₹"+n.toFixed(2)}
+function addTrade(){
+const stock=document.getElementById("stock").value.trim();
+const amount=Number(document.getElementById("amount").value);
+const pnl=Number(document.getElementById("result").value);
+const direction=document.getElementById("direction").value;
+const msg=document.getElementById("message");
+if(!stock||!Number.isFinite(amount)||!Number.isFinite(pnl)||amount<=0){
+msg.textContent="Enter valid trade details.";return;
+}
+if(trades.length>=3){msg.textContent="Daily maximum 3 trades reached.";return;}
+if(amount>balance){msg.textContent="Position exceeds available balance.";return;}
+if(pnl>300||pnl< -200){msg.textContent="P&L exceeds the simulated target/stop limit.";return;}
+if(pnl<0&&Math.abs(pnl)>balance){msg.textContent="Insufficient balance.";return;}
+balance+=pnl;
+trades.push({stock,direction,amount,pnl});
+render();
+msg.textContent="Paper trade saved successfully.";
+document.getElementById("stock").value="";
+document.getElementById("amount").value="";
+document.getElementById("result").value="";
+}
+function render(){
+let profit=trades.filter(t=>t.pnl>0).reduce((s,t)=>s+t.pnl,0);
+let loss=trades.filter(t=>t.pnl<0).reduce((s,t)=>s+Math.abs(t.pnl),0);
+let net=profit-loss;
+document.getElementById("balance").textContent=money(balance);
+document.getElementById("profit").textContent=money(profit);
+document.getElementById("loss").textContent=money(loss);
+document.getElementById("net").textContent=money(net);
+document.getElementById("history").innerHTML=trades.map(t=>
+<tr><td>${escapeText(t.stock)}</td><td>${t.direction}</td><td>${money(t.amount)}</td><td class="${t.pnl>=0?'green':'red'}">${money(t.pnl)}</td></tr>
+).join("");
+document.getElementById("report").textContent=
+trades.length+" completed trades. "+trades.filter(t=>t.pnl>0).length+
+" profitable, "+trades.filter(t=>t.pnl<0).length+
+" losing. Net P&L: "+money(net)+". Manual review required to identify causes.";
+}
+function escapeText(s){
+return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+</script>
+</body>
+</html>
